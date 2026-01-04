@@ -1,22 +1,17 @@
 {
-  "name": "MANGARED Oficial",
+  "name": "MANGARED",
   "short_name": "MANGARED",
-  "description": "O melhor leitor de mangás online.",
-  "start_url": "index.html",
+  "description": "Lê os teus mangás favoritos online.",
+  "start_url": "/",
   "display": "standalone",
-  "background_color": "#050505",
+  "background_color": "#000000",
   "theme_color": "#ff0000",
-  "orientation": "portrait",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/2785/2785232.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "https://cdn-icons-png.flaticon.com/512/2785/2785232.png",
+      "src": "assets/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
