@@ -3,9 +3,22 @@ const PROXY = "https://corsproxy.io/?";
 let currentMangaId = ""; 
 let mangaChapters = [];
 
-document.addEventListener('DOMContentLoaded', () => { fetchMangas(); loadHistory(); });
+// --- INICIALIZAÇÃO ---
+document.addEventListener('DOMContentLoaded', () => { 
+    fetchMangas(); 
+    loadHistory(); 
+});
 
-// Pega as capas corretamente
+// --- REGISTRO DO SERVICE WORKER (PARA INSTALAR NO ANDROID) ---
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+            .then(reg => console.log('MANGARED: App pronto para uso offline!'))
+            .catch(err => console.log('Erro ao carregar motor do App', err));
+    });
+}
+
+// --- LÓGICA DE CAPAS ---
 function getCoverUrl(manga) {
     const coverRel = manga.relationships.find(r => r.type === 'cover_art');
     if (!coverRel || !coverRel.attributes) return "https://via.placeholder.com/256x384?text=Sem+Capa";
@@ -15,7 +28,6 @@ function getCoverUrl(manga) {
 
 async function fetchMangas() {
     try {
-        // O segredo está no include[cover_art] para a API mandar os dados da imagem
         const url = `${API_BASE}/manga?limit=24&includes[]=cover_art&order[followedCount]=desc&contentRating[]=safe`;
         const res = await fetch(`${PROXY}${encodeURIComponent(url)}`);
         const data = await res.json();
@@ -25,6 +37,7 @@ async function fetchMangas() {
 
 function renderMangas(list) {
     const grid = document.getElementById('mangaGrid');
+    if(!grid) return;
     grid.innerHTML = list.map(m => {
         const cover = getCoverUrl(m);
         const title = m.attributes.title.en || Object.values(m.attributes.title)[0];
@@ -36,6 +49,7 @@ function renderMangas(list) {
     }).join('');
 }
 
+// --- BUSCA ---
 async function executeSearch() {
     const query = document.getElementById('searchInput').value;
     if (!query) return;
@@ -46,6 +60,7 @@ async function executeSearch() {
     renderMangas(data.data);
 }
 
+// --- LISTA DE CAPÍTULOS ---
 async function showChapterList(id, title, cover) {
     currentMangaId = id;
     document.getElementById('homeView').style.display = 'none';
@@ -55,7 +70,7 @@ async function showChapterList(id, title, cover) {
     view.innerHTML = `
         <button onclick="window.location.reload()" class="btn-back">← Voltar</button>
         <div style="display:flex; gap:20px; margin-top:20px; flex-wrap:wrap;">
-            <img src="${cover}" id="currCover" style="width:180px; border-radius:8px;">
+            <img src="${cover}" id="currCover" style="width:180px; border-radius:8px;" referrerpolicy="no-referrer">
             <div style="flex:1; min-width:250px;">
                 <h1 id="currTitle">${title}</h1>
                 <div id="chaptersGrid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(75px,1fr)); gap:8px; margin-top:20px;"></div>
@@ -73,6 +88,7 @@ async function showChapterList(id, title, cover) {
         </div>`).join('');
 }
 
+// --- LEITOR COM ANÚNCIOS ---
 async function openReader(chapterId, num) {
     saveToHistory(currentMangaId, document.getElementById('currTitle').innerText, document.getElementById('currCover').src, num);
     document.getElementById('chapterView').style.display = 'none';
@@ -85,7 +101,8 @@ async function openReader(chapterId, num) {
     
     const pagesHtml = srv.chapter.data.map((f, i) => {
         let img = `<img src="${srv.baseUrl}/data/${srv.chapter.hash}/${f}" referrerpolicy="no-referrer">`;
-        if (i === 2) img += `<div class="ad-slot"><div class="ad-box">ANÚNCIO MEIO</div></div>`;
+        // Espaço para anúncio no meio da leitura (página 3)
+        if (i === 2) img += `<div class="ad-slot"><div class="ad-box">ANÚNCIO DISPONÍVEL</div></div>`;
         return img;
     }).join('');
 
@@ -102,33 +119,19 @@ async function openReader(chapterId, num) {
     document.getElementById('pagesContainer').innerHTML = pagesHtml + nav;
 }
 
-// --- FUNÇÃO PARA SALVAR NO HISTÓRICO CORRETAMENTE ---
+// --- SISTEMA DE HISTÓRICO ---
 function saveToHistory(mangaId, title, cover, chapterNum) {
     let history = JSON.parse(localStorage.getItem('mangaHistory')) || [];
-    
-    // Remove se já existir para atualizar a posição (trazer para frente)
     history = history.filter(item => item.id !== mangaId);
-    
-    // Adiciona o novo item com a URL da capa validada
-    history.unshift({ 
-        id: mangaId, 
-        title: title, 
-        cover: cover, 
-        chapter: chapterNum 
-    });
-    
-    // Mantém apenas os 4 últimos
+    history.unshift({ id: mangaId, title: title, cover: cover, chapter: chapterNum });
     if (history.length > 4) history.pop();
-    
     localStorage.setItem('mangaHistory', JSON.stringify(history));
 }
 
-// --- FUNÇÃO PARA CARREGAR O "CONTINUE LENDO" SEM FICAR BRANCO ---
 function loadHistory() {
     const history = JSON.parse(localStorage.getItem('mangaHistory')) || [];
     const section = document.getElementById('continueReadingSection');
     const grid = document.getElementById('continueGrid');
-    
     if (!section || !grid) return;
 
     if (history.length === 0) {
@@ -147,5 +150,12 @@ function loadHistory() {
         </div>`).join('');
 }
 
-function backToChapters() { document.getElementById('readerView').style.display = 'none'; document.getElementById('chapterView').style.display = 'block'; }
-function clearHistory() { localStorage.removeItem('mangaHistory'); location.reload(); }
+function backToChapters() { 
+    document.getElementById('readerView').style.display = 'none'; 
+    document.getElementById('chapterView').style.display = 'block'; 
+}
+
+function clearHistory() { 
+    localStorage.removeItem('mangaHistory'); 
+    location.reload(); 
+}
