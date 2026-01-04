@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MANGARED | OFICIAL</title>
+    <link rel="icon" href="assets/black.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo" onclick="window.location.reload()">MANGA<span>RED</span></div>
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Buscar mangá..." onkeypress="if(event.key === 'Enter') executeSearch()">
+            <button onclick="executeSearch()"><i class="fas fa-search"></i></button>
+        </div>
+    </nav>
+
+    <main id="mainContent">
+        <div id="homeView">
+            <section class="hero" id="heroBanner">
+                <div class="hero-overlay">
+                    <div class="hero-content">
+                        <h1>SOLO <br><span>LEVELING</span></h1>
+                        <p>A jornada de Sung Jin-Woo começa agora.</p>
+                    </div>
+                </div>
+            </section>
+
+            <div id="continueReadingSection" style="display:none; padding: 20px 5% 0;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                    <h2>📖 CONTINUE LENDO</h2>
+                    <button onclick="clearHistory()" class="btn-clear">LIMPAR</button>
+                </div>
+                <div id="continueGrid" class="manga-grid"></div>
+                <hr style="border:0; border-top:1px solid #222; margin:30px 0;">
+            </div>
+
+            <div style="padding: 30px 5% 15px;"><h2>🔥 TENDÊNCIAS</h2></div>
+            <div id="mangaGrid" class="manga-grid"></div>
+        </div>
+
+        <div id="chapterView" style="display:none; padding: 20px 5%;"></div>
+
+        <div id="readerView" style="display:none;">
+            <div class="reader-header">
+                <button onclick="backToChapters()" class="btn-back">← Voltar</button>
+                <span id="chapterTitle">Capítulo</span>
+            </div>
+            <div id="pagesContainer"></div>
+        </div>
+    </main>
+    <script src="script.js"></script>
+</body>
+</html>
